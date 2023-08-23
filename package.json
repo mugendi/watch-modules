@@ -6,13 +6,27 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["chokidar", "watch", "require", "modules"],
-  "author": "",
+  "keywords": [
+    "chokidar",
+    "watch",
+    "require",
+    "modules"
+  ],
+  "author": "Anthony Mugendi <ngurumugz@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "anymatch": "^3.1.3",
     "chokidar": "^3.5.3",
     "clear-module": "^4.1.2",
     "debug-symbols": "^1.0.2"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mugendi/watch-modules.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mugendi/watch-modules/issues"
+  },
+  "homepage": "https://github.com/mugendi/watch-modules#readme"
 }
