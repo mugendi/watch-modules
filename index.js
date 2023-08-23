@@ -10,15 +10,13 @@ const anymatch = require('anymatch');
 const path = require('path');
 const fs = require('fs');
 const clearModule = require('clear-module');
-const logger = require('debug-symbols')('watch-modules')
-
-
+const logger = require('debug-symbols')('watch-modules');
 
 class FamilyWatcher {
     constructor(opts = {}) {
         this.opts = Object.assign(
             {
-                ignore: ['**/node_modules/**'],
+                ignoreRequires: ['**/node_modules/**'],
             },
             opts
         );
@@ -27,34 +25,26 @@ class FamilyWatcher {
         this.watchers = {};
     }
 
+    watch(pattern, opts = {}) {
+        //
+        this.patternFiles[pattern] = [];
 
-    async watch(pattern, opts = {}) {
-        try {
-            
-            //
-            this.patternFiles[pattern] = [];
+        let watcher = chokidar
+            .watch(pattern, opts)
+            .on('error', (error) => {
+                throw error;
+            })
+            .on('ready', () => {
+                this.watch_required(watcher);
+            })
+            .on('change', (filePath) => {
+                logger.debug(filePath + ' changed...');
+                // console.log({allWatchedFiles});
+                this.watch_required(watcher);
+            });
 
-
-            let watcher = chokidar
-                .watch(pattern, opts)
-                .on('error', (error) => {
-                    throw error;
-                })
-                .on('ready', () => {
-                    this.watch_required(watcher);
-                })
-                .on('change', (filePath) => {
-                    logger.debug(filePath + ' changed...')
-                    // console.log({allWatchedFiles});
-                    this.watch_required(watcher);
-                });
-
-            
-            // return watcher
-            return watcher;
-        } catch (error) {
-            throw error;
-        }
+        // return watcher
+        return watcher;
     }
 
     get_all_watched(watcher) {
@@ -84,7 +74,7 @@ class FamilyWatcher {
                 // Ignore files
                 if (
                     allRequiredFiles.indexOf(childFile) == -1 &&
-                    anymatch(this.opts.ignore, childFile) === false
+                    anymatch(this.opts.ignoreRequires, childFile) === false
                 ) {
                     allRequiredFiles.push(childFile);
                 }
@@ -96,7 +86,7 @@ class FamilyWatcher {
         for (let childFile of allRequiredFiles) {
             // check that child file is not already being watched....
             if (allWatchedFiles.indexOf(childFile) == -1) {
-                logger.info('++ Watching '+ childFile);
+                logger.info('++ Watching ' + childFile);
                 // add to watcher
                 watcher.add(childFile);
             }
@@ -106,7 +96,7 @@ class FamilyWatcher {
         for (let file of allWatchedFiles.slice(1)) {
             if (allRequiredFiles.indexOf(file) == -1) {
                 logger.info('-- Unwatching ' + file);
-                watcher.unwatch(file)
+                watcher.unwatch(file);
             }
         }
     }
@@ -127,7 +117,7 @@ class FamilyWatcher {
 
             let files = thisMod.children
                 .map((m) => m.filename)
-                .filter((f) => anymatch(this.opts.ignore, f) === false);
+                .filter((f) => anymatch(this.opts.ignoreRequires, f) === false);
 
             for (let f of files) {
                 if (childMods.indexOf(f) == -1) {
